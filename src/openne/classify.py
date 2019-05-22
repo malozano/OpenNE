@@ -54,6 +54,16 @@ class Classifier(object):
     def split_train_evaluate(self, X, Y, train_precent, seed=0):
         state = numpy.random.get_state()
 
+        # ---- Filtrar ejemplos multilabel ----
+        #print('Entran  {} ejemplos'.format(len(X)))
+        #filtered = [(x,y) for (x,y) in zip(X,Y) if len(y)==1]
+        #X, Y = zip(*filtered)
+        #X = list(X)
+        #Y = list(Y)
+        #print(Y)
+        #print('Filtrados son  {} ejemplos'.format(len(X)))
+        # -------------------------------------
+
         training_size = int(train_precent * len(X))
         numpy.random.seed(seed)
         shuffle_indices = numpy.random.permutation(numpy.arange(len(X)))
@@ -96,3 +106,9 @@ def read_node_label(filename):
         Y.append(vec[1:])
     fin.close()
     return X, Y
+
+def write_node_label(X, Y, filename):
+    fout = open(filename, 'w')
+    for x, y in zip(X,Y):
+        fout.write("{} {}\n".format(x,' '.join(y)))
+    fout.close()

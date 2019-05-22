@@ -1,7 +1,8 @@
 from __future__ import print_function
-import time
 from gensim.models import Word2Vec
 from . import walker
+from collections import Counter
+from pickle import dump
 
 
 class Node2vec(object):
@@ -22,12 +23,23 @@ class Node2vec(object):
                 graph, p=p, q=q, workers=kwargs["workers"])
             print("Preprocess transition probs...")
             self.walker.preprocess_transition_probs()
+
+        print("Simulating walks...")
         sentences = self.walker.simulate_walks(
             num_walks=num_paths, walk_length=path_length)
         kwargs["sentences"] = sentences
         kwargs["min_count"] = kwargs.get("min_count", 0)
         kwargs["size"] = kwargs.get("size", dim)
         kwargs["sg"] = 1
+
+        # Generate walk histogram
+        c = Counter()
+        for sentence in sentences:
+            c.update(sentence)
+
+        hist = sorted(c.values(), reverse=True)
+        with open('histnodes_{}.pkl'.format(len(graph.G.nodes)), 'wb') as fp:
+            dump(hist, fp)
 
         self.size = kwargs["size"]
         print("Learning representation...")

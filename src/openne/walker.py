@@ -1,5 +1,6 @@
 from __future__ import print_function
 import random
+import math
 import numpy as np
 import multiprocessing
 
@@ -43,7 +44,7 @@ class BasicWalker:
         print('Walk iteration:')
         for walk_iter in range(num_walks):
             # pool = multiprocessing.Pool(processes = 4)
-            print(str(walk_iter+1), '/', str(num_walks))
+            print(str(walk_iter + 1), '/', str(num_walks))
             random.shuffle(nodes)
             for node in nodes:
                 # walks.append(pool.apply_async(deepwalk_walk_wrapper, (self, walk_length, node, )))
@@ -55,6 +56,52 @@ class BasicWalker:
         return walks
 
 
+class BasicLineWalker:
+    def __init__(self, G, workers):
+        self.G = G.G
+        self.node_size = G.node_size
+        self.look_up_dict = G.look_up_dict
+        self.look_up_edge = G.look_up_edge
+        self.look_back_edge = G.look_back_edge
+
+    def linewalk_walk(self, walk_length, start_edge):
+        '''
+        Simulate a random walk starting from start node.
+        '''
+        G = self.G
+        node_size = self.node_size
+
+        walk = [start_edge]
+
+        while len(walk) < walk_length:
+            cur = walk[-1]
+            cur_nbrs = [(cur[0], dst) for dst in G.neighbors(cur[0]) if dst != cur[1]]
+            cur_nbrs.extend([(cur[1], dst) for dst in G.neighbors(cur[1]) if dst != cur[0]])
+
+            if len(cur_nbrs) > 0:
+                walk.append(random.choice(cur_nbrs))
+            else:
+                break
+
+        return walk
+
+    def simulate_walks(self, num_walks, walk_length):
+        '''
+        Repeatedly simulate random walks from each node.
+        '''
+        G = self.G
+        walks = []
+        edges = list(self.look_back_edge.values())
+        print('Walk iteration:')
+        for walk_iter in range(num_walks):
+            print(str(walk_iter + 1), '/', str(num_walks))
+            random.shuffle(edges)
+            for edge in edges:
+                walks.append(self.linewalk_walk(walk_length=walk_length, start_edge=edge))
+
+        return walks
+
+
 class Walker:
     def __init__(self, G, p, q, workers):
         self.G = G.G
@@ -62,6 +109,7 @@ class Walker:
         self.q = q
         self.node_size = G.node_size
         self.look_up_dict = G.look_up_dict
+        self.look_up_edge = G.look_up_edge
 
     def node2vec_walk(self, walk_length, start_node):
         '''
@@ -97,12 +145,13 @@ class Walker:
         '''
         Repeatedly simulate random walks from each node.
         '''
+
         G = self.G
         walks = []
         nodes = list(G.nodes())
         print('Walk iteration:')
         for walk_iter in range(num_walks):
-            print(str(walk_iter+1), '/', str(num_walks))
+            print(str(walk_iter + 1), '/', str(num_walks))
             random.shuffle(nodes)
             for node in nodes:
                 walks.append(self.node2vec_walk(
@@ -121,14 +170,14 @@ class Walker:
         unnormalized_probs = []
         for dst_nbr in G.neighbors(dst):
             if dst_nbr == src:
-                unnormalized_probs.append(G[dst][dst_nbr]['weight']/p)
+                unnormalized_probs.append(G[dst][dst_nbr]['weight'] / p)
             elif G.has_edge(dst_nbr, src):
                 unnormalized_probs.append(G[dst][dst_nbr]['weight'])
             else:
-                unnormalized_probs.append(G[dst][dst_nbr]['weight']/q)
+                unnormalized_probs.append(G[dst][dst_nbr]['weight'] / q)
         norm_const = sum(unnormalized_probs)
         normalized_probs = [
-            float(u_prob)/norm_const for u_prob in unnormalized_probs]
+            float(u_prob) / norm_const for u_prob in unnormalized_probs]
 
         return alias_setup(normalized_probs)
 
@@ -144,7 +193,7 @@ class Walker:
                                   for nbr in G.neighbors(node)]
             norm_const = sum(unnormalized_probs)
             normalized_probs = [
-                float(u_prob)/norm_const for u_prob in unnormalized_probs]
+                float(u_prob) / norm_const for u_prob in unnormalized_probs]
             alias_nodes[node] = alias_setup(normalized_probs)
 
         alias_edges = {}
@@ -152,7 +201,198 @@ class Walker:
 
         look_up_dict = self.look_up_dict
         node_size = self.node_size
-        for edge in G.edges():
+        for edge in self.look_up_edge.keys():
+            alias_edges[edge] = self.get_alias_edge(edge[0], edge[1])
+
+        self.alias_nodes = alias_nodes
+        self.alias_edges = alias_edges
+
+        return
+
+
+class LineWalker:
+    def __init__(self, G, workers):
+        self.G = G.G
+        self.node_size = G.node_size
+        self.look_up_dict = G.look_up_dict
+        self.look_up_edge = G.look_up_edge
+        self.look_back_edge = G.look_back_edge
+
+    def line2vec_walk(self, walk_length, start_edge):
+        '''
+        Simulate a random walk starting from start node.
+        '''
+        G = self.G
+        alias_nodes = self.alias_nodes
+        alias_edges = self.alias_edges
+        node_size = self.node_size
+
+        walk = [start_edge]
+
+        while len(walk) < walk_length:
+            cur = walk[-1]
+            cur_nbrs = [(cur[0], dst) for dst in G.neighbors(cur[0]) if dst != cur[1]]
+            cur_nbrs.extend([(cur[1], dst) for dst in G.neighbors(cur[1]) if dst != cur[0]])
+            if len(cur_nbrs) > 0:
+                next = cur_nbrs[alias_draw(alias_edges[cur][0],
+                                           alias_edges[cur][1])]
+                walk.append(next)
+            else:
+                break
+
+        return walk
+
+    def simulate_walks(self, num_walks, walk_length):
+        '''
+        Repeatedly simulate random walks from each node.
+        '''
+        G = self.G
+        walks = []
+        edges = list(self.look_back_edge.values())
+        print('Walk iteration:')
+        for walk_iter in range(num_walks):
+            print(str(walk_iter + 1), '/', str(num_walks))
+            random.shuffle(edges)
+            for edge in edges:
+                walks.append(self.line2vec_walk(
+                    walk_length=walk_length, start_edge=edge))
+
+        return walks
+
+    def get_alias_edge(self, src, dst):
+        '''
+        Get the alias edge setup lists for a given edge.
+        '''
+        G = self.G
+
+        unnormalized_probs = []
+        for dst_nbr in G.neighbors(src):
+            if (dst_nbr != dst):
+                unnormalized_probs.append(G[src][dst_nbr]['weight'])
+        for dst_nbr in G.neighbors(dst):
+            if (dst_nbr != src):
+                unnormalized_probs.append(G[dst][dst_nbr]['weight'])
+        norm_const = sum(unnormalized_probs)
+        normalized_probs = [
+            float(u_prob) / norm_const for u_prob in unnormalized_probs]
+
+        return alias_setup(normalized_probs)
+
+    def preprocess_transition_probs(self):
+        '''
+        Preprocessing of transition probabilities for guiding the random walks.
+        '''
+        G = self.G
+
+        alias_nodes = {}
+        for node in G.nodes():
+            unnormalized_probs = [G[node][nbr]['weight']
+                                  for nbr in G.neighbors(node)]
+            norm_const = sum(unnormalized_probs)
+            normalized_probs = [
+                float(u_prob) / norm_const for u_prob in unnormalized_probs]
+            alias_nodes[node] = alias_setup(normalized_probs)
+
+        alias_edges = {}
+        triads = {}
+
+        look_up_dict = self.look_up_dict
+        look_back_edge = self.look_back_edge
+        node_size = self.node_size
+        for edge in self.look_up_edge.keys():
+            alias_edges[edge] = self.get_alias_edge(edge[0], edge[1])
+
+        self.alias_nodes = alias_nodes
+        self.alias_edges = alias_edges
+
+        return
+
+
+class DirectedLineWalker:
+    def __init__(self, G, workers):
+        self.G = G.G
+        self.node_size = G.node_size
+        self.look_up_dict = G.look_up_dict
+        self.look_up_edge = G.look_up_edge
+        self.look_back_edge = G.look_back_edge
+
+    def line2vec_walk(self, walk_length, start_edge):
+        '''
+        Simulate a random walk starting from start node.
+        '''
+        G = self.G
+        alias_nodes = self.alias_nodes
+        alias_edges = self.alias_edges
+        node_size = self.node_size
+
+        walk = [start_edge]
+
+        while len(walk) < walk_length:
+            cur = walk[-1]
+            cur_nbrs = [(cur[1], dst) for dst in G.neighbors(cur[1])]
+            if len(cur_nbrs) > 0:
+                next = cur_nbrs[alias_draw(alias_edges[cur][0],
+                                           alias_edges[cur][1])]
+                walk.append(next)
+            else:
+                break
+
+        return walk
+
+    def simulate_walks(self, num_walks, walk_length):
+        '''
+        Repeatedly simulate random walks from each node.
+        '''
+        G = self.G
+        walks = []
+        edges = list(self.look_back_edge.values())
+        print('Walk iteration:')
+        for walk_iter in range(num_walks):
+            print(str(walk_iter + 1), '/', str(num_walks))
+            random.shuffle(edges)
+            for edge in edges:
+                walks.append(self.line2vec_walk(
+                    walk_length=walk_length, start_edge=edge))
+
+        return walks
+
+    def get_alias_edge(self, src, dst):
+        '''
+        Get the alias edge setup lists for a given edge.
+        '''
+        G = self.G
+
+        unnormalized_probs = []
+        for dst_nbr in G.neighbors(dst):
+            unnormalized_probs.append(G[dst][dst_nbr]['weight'])
+        norm_const = sum(unnormalized_probs)
+        normalized_probs = [
+            float(u_prob) / norm_const for u_prob in unnormalized_probs]
+
+        return alias_setup(normalized_probs)
+
+    def preprocess_transition_probs(self):
+        '''
+        Preprocessing of transition probabilities for guiding the random walks.
+        '''
+        G = self.G
+
+        alias_nodes = {}
+        for node in G.nodes():
+            unnormalized_probs = [G[node][nbr]['weight']
+                                  for nbr in G.neighbors(node)]
+            norm_const = sum(unnormalized_probs)
+            normalized_probs = [
+                float(u_prob) / norm_const for u_prob in unnormalized_probs]
+            alias_nodes[node] = alias_setup(normalized_probs)
+
+        alias_edges = {}
+        triads = {}
+
+        look_up_dict = self.look_up_dict
+        look_back_edge = self.look_back_edge
+        node_size = self.node_size
+        for edge in self.look_up_edge.keys():
             alias_edges[edge] = self.get_alias_edge(edge[0], edge[1])
 
         self.alias_nodes = alias_nodes
@@ -174,7 +414,7 @@ def alias_setup(probs):
     smaller = []
     larger = []
     for kk, prob in enumerate(probs):
-        q[kk] = K*prob
+        q[kk] = K * prob
         if q[kk] < 1.0:
             smaller.append(kk)
         else:
@@ -200,7 +440,7 @@ def alias_draw(J, q):
     '''
     K = len(J)
 
-    kk = int(np.floor(np.random.rand()*K))
+    kk = int(np.floor(np.random.rand() * K))
     if np.random.rand() < q[kk]:
         return kk
     else:
