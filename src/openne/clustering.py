@@ -16,6 +16,7 @@ class Clustering(object):
             ground_truth = [sorted(ground_truth[node]) for node in self.nodes]
             self.ground_truth_labels_unique, self.ground_truth_labels = np.unique(ground_truth, return_inverse=True)
             self.num_classes = len(self.ground_truth_labels_unique)
+            self.ground_truth_labels_unique = range(self.num_classes)
             print('Setting number of clusters to {}'.format(self.num_classes))
         else:
             self.num_classes = num_classes

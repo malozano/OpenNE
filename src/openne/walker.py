@@ -125,7 +125,10 @@ class Walker:
 
         while len(walk) < walk_length:
             cur = walk[-1]
-            cur_nbrs = list(G.neighbors(cur))
+
+            # Avoid self-loops
+            cur_nbrs = [n for n in G.neighbors(cur) if n != cur]
+
             if len(cur_nbrs) > 0:
                 if len(walk) == 1:
                     walk.append(
@@ -168,7 +171,9 @@ class Walker:
         q = self.q
 
         unnormalized_probs = []
-        for dst_nbr in G.neighbors(dst):
+        # Avoid self-loops
+        neighbors = [n for n in G.neighbors(dst) if n!=dst]
+        for dst_nbr in neighbors:
             if dst_nbr == src:
                 unnormalized_probs.append(G[dst][dst_nbr]['weight'] / p)
             elif G.has_edge(dst_nbr, src):
@@ -190,7 +195,7 @@ class Walker:
         alias_nodes = {}
         for node in G.nodes():
             unnormalized_probs = [G[node][nbr]['weight']
-                                  for nbr in G.neighbors(node)]
+                                  for nbr in G.neighbors(node) if nbr!=node]
             norm_const = sum(unnormalized_probs)
             normalized_probs = [
                 float(u_prob) / norm_const for u_prob in unnormalized_probs]

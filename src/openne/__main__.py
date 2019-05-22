@@ -229,7 +229,7 @@ def main(args):
             clustering = Clustering(vectors=vectors, ground_truth=dict(zip(x, y)))
         clustering.fit()
 
-        if args.method == 'edge2vec' or args.method == 'edgeWalk' or args.linegraph:
+        if args.method == 'edge2vec' or args.method == 'edgeWalk':
             A = g.line_adjacency_matrix_node_walk(nodelist=clustering.nodes)
         else:
             A = g.adjacency_matrix(nodelist=clustering.nodes)
