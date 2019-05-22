@@ -2,7 +2,7 @@
 
 This repository provides a standard NE/NRL(Network Representation Learning）training and testing framework. In this framework, we unify the input and output interfaces of different NE models and provide scalable options for each model. Moreover, we implement typical NE models under this framework based on tensorflow, which enables these models to be trained with GPUs.
 
-We develop this toolkit according to the settings of DeepWalk. The implemented or modified models include [DeepWalk](https://github.com/phanein/deepwalk), [LINE](https://github.com/tangjianpku/LINE), [node2vec](https://github.com/aditya-grover/node2vec), [GraRep](https://github.com/ShelsonCao/GraRep), [TADW](https://github.com/thunlp/TADW), [GCN](https://github.com/tkipf/gcn), HOPE, GF, SDNE and LE. We will implement more representative NE models continuously according to our released [NRL paper list](https://github.com/thunlp/nrlpapers). Specifically, we welcome other researchers to contribute NE models into this toolkit based on our framework. We will announce the contribution in this project.
+We develop this toolkit according to the settings of DeepWalk. The implemented or modified models include [DeepWalk](https://github.com/phanein/deepwalk), [LINE](https://github.com/tangjianpku/LINE), [node2vec](https://github.com/aditya-grover/node2vec), [GraRep](https://github.com/ShelsonCao/GraRep), [TADW](https://github.com/thunlp/TADW), [GCN](https://github.com/tkipf/gcn), [NetMF](https://github.com/xptree/NetMF), [PRUNE](https://github.com/ntumslab/PRUNE), HOPE, GF, SDNE and LE. We will implement more representative NE models continuously according to our released [NRL paper list](https://github.com/thunlp/nrlpapers). Specifically, we welcome other researchers to contribute NE models into this toolkit based on our framework. We will announce the contribution in this project.
 
 ## Usage
 
@@ -106,13 +106,13 @@ If the model needs additional features, the supported feature input format is as
 
 
 #### Output
-The output file has *n+1* lines for a graph with *n* nodes. 
+The output file has *n+1* lines for a graph with *n* nodes.
 The first line has the following format:
 
     num_of_nodes dim_of_representation
 
 The next *n* lines are as follows:
-    
+
     node_id dim1 dim2 ... dimd
 
 where dim1, ... , dimd is the *d*-dimensional representation learned by *OpenNE*.
@@ -141,7 +141,7 @@ Running environment:  <br />
 BlogCatalog: CPU: Intel(R) Xeon(R) CPU E5-2620 v3 @ 2.40GHz. <br />
 Wiki, Cora: CPU: Intel(R) Core(TM) i5-7267U CPU @ 3.10GHz. <br />
 
-We show the node classification results of various methods in different datasets. We set representation dimension to 128, **kstep=4** in GraRep. 
+We show the node classification results of various methods in different datasets. We set representation dimension to 128, **kstep=4** in GraRep.
 
 Note that, both GCN(a semi-supervised NE model) and TADW need additional text features as inputs. Thus, we evaluate these two models on Cora in which each node has text information. We use 10% labeled data to train GCN.
 
@@ -199,6 +199,26 @@ Note that, both GCN(a semi-supervised NE model) and TADW need additional text fe
 | OpenNE(GCN) | 0.5 | 1e-4 | 16 | - | 5.4s | 0.783 |
 | OpenNE(GCN) | 0.5 | 5e-4 | 64 | - | 6.5s | 0.779 |
 
+[Citeseer](https://linqs.soe.ucsc.edu/data): 3312 nodes, 4676 edges, 6 labels, directed.
+
+- data/citeseer/citeseer_edgelist.txt
+- data/citeseer/citeseer_labels.txt
+
+[PPI](https://snap.stanford.edu/node2vec/): 3890 nodes, 38292 edges, 50 labels (multi-label), undirected.
+
+- data/PPI/PPI_edgelist.txt
+- data/PPI/PPI_labels.txt
+
+[POS](https://snap.stanford.edu/node2vec/): 4777 nodes, 92406 edges, 40 labels (multi-label), undirected.
+
+- data/POS/POS_edgelist.txt
+- data/POS/POS_labels.txt
+
+[Facebook](https://snap.stanford.edu/node2vec/): 4039 nodes, 88234 edges, 10 labels (multi-label), undirected.
+
+- data/facebook/facebook_edgelist.txt
+- data/facebook/facebook_labels.txt
+
 
 ## Citing
 
@@ -211,7 +231,7 @@ If you find *OpenNE* is useful for your research, please consider citing the fol
       Year                     = {2014},
       Pages                    = {701--710}
     }
-    
+
     @InProceedings{tang2015line,
       Title                    = {Line: Large-scale information network embedding},
       Author                   = {Tang, Jian and Qu, Meng and Wang, Mingzhe and Zhang, Ming and Yan, Jun and Mei, Qiaozhu},
@@ -219,7 +239,7 @@ If you find *OpenNE* is useful for your research, please consider citing the fol
       Year                     = {2015},
       Pages                    = {1067--1077}
     }
-    
+
     @InProceedings{grover2016node2vec,
       Title                    = {node2vec: Scalable feature learning for networks},
       Author                   = {Grover, Aditya and Leskovec, Jure},
@@ -227,14 +247,14 @@ If you find *OpenNE* is useful for your research, please consider citing the fol
       Year                     = {2016},
       Pages                    = {855--864}
     }
-    
+
     @article{kipf2016semi,
       Title                    = {Semi-Supervised Classification with Graph Convolutional Networks},
       Author                   = {Kipf, Thomas N and Welling, Max},
       journal                  = {arXiv preprint arXiv:1609.02907},
       Year                     = {2016}
     }
-    
+
     @InProceedings{cao2015grarep,
       Title                    = {Grarep: Learning graph representations with global structural information},
       Author                   = {Cao, Shaosheng and Lu, Wei and Xu, Qiongkai},
@@ -242,14 +262,14 @@ If you find *OpenNE* is useful for your research, please consider citing the fol
       Year                     = {2015},
       Pages                    = {891--900}
     }
-    
+
     @InProceedings{yang2015network,
       Title                    = {Network representation learning with rich text information},
       Author                   = {Yang, Cheng and Liu, Zhiyuan and Zhao, Deli and Sun, Maosong and Chang, Edward},
       Booktitle                = {Proceedings of IJCAI},
       Year                     = {2015}
     }
-    
+
     @Article{tu2017network,
       Title                    = {Network representation learning: an overview},
       Author                   = {TU, Cunchao and YANG, Cheng and LIU, Zhiyuan and SUN, Maosong},
@@ -259,7 +279,7 @@ If you find *OpenNE* is useful for your research, please consider citing the fol
       Pages                    = {980--996},
       Year                     = {2017}
     }
-    
+
     @inproceedings{ou2016asymmetric,
       title                    = {Asymmetric transitivity preserving graph embedding},
       author                   = {Ou, Mingdong and Cui, Peng and Pei, Jian and Zhang, Ziwei and Zhu, Wenwu},
@@ -294,6 +314,101 @@ If you find *OpenNE* is useful for your research, please consider citing the fol
       year                     = {2016},
       organization             = {ACM}
     }
+
+    @article{DBLP:journals/aim/SenNBGGE08,
+      author    = {Prithviraj Sen and
+                   Galileo Namata and
+                   Mustafa Bilgic and
+                   Lise Getoor and
+                   Brian Gallagher and
+                   Tina Eliassi{-}Rad},
+      title     = {Collective Classification in Network Data},
+      journal   = {{AI} Magazine},
+      volume    = {29},
+      number    = {3},
+      pages     = {93--106},
+      year      = {2008},
+      url       = {http://www.aaai.org/ojs/index.php/aimagazine/article/view/2157},
+      timestamp = {Thu, 29 Jun 2017 17:16:34 +0200},
+      biburl    = {https://dblp.org/rec/bib/journals/aim/SenNBGGE08},
+      bibsource = {dblp computer science bibliography, https://dblp.org}
+    }
+
+    @article{DBLP:journals/nar/BreitkreutzSRBBLOLBWDT08,
+      author    = {Bobby{-}Joe Breitkreutz and
+                   Chris Stark and
+                   Teresa Reguly and
+                   Lorrie Boucher and
+                   Ashton Breitkreutz and
+                   Michael S. Livstone and
+                   Rose Oughtred and
+                   Daniel H. Lackner and
+                   J{\"{u}}rg B{\"{a}}hler and
+                   Valerie Wood and
+                   Kara Dolinski and
+                   Mike Tyers},
+      title     = {The BioGRID Interaction Database: 2008 update},
+      journal   = {Nucleic Acids Research},
+      volume    = {36},
+      number    = {Database-Issue},
+      pages     = {637--640},
+      year      = {2008},
+      url       = {https://doi.org/10.1093/nar/gkm1001},
+      doi       = {10.1093/nar/gkm1001},
+      timestamp = {Wed, 14 Nov 2018 10:40:32 +0100},
+      biburl    = {https://dblp.org/rec/bib/journals/nar/BreitkreutzSRBBLOLBWDT08},
+      bibsource = {dblp computer science bibliography, https://dblp.org}
+    }
+
+    @inproceedings{DBLP:conf/nips/McAuleyL12,
+      author    = {Julian J. McAuley and
+                   Jure Leskovec},
+      title     = {Learning to Discover Social Circles in Ego Networks},
+      booktitle = {Advances in Neural Information Processing Systems 25: 26th Annual
+                   Conference on Neural Information Processing Systems 2012. Proceedings
+                   of a meeting held December 3-6, 2012, Lake Tahoe, Nevada, United States.},
+      pages     = {548--556},
+      year      = {2012},
+      crossref  = {DBLP:conf/nips/2012},
+      url       = {http://papers.nips.cc/paper/4532-learning-to-discover-social-circles-in-ego-networks},
+      timestamp = {Thu, 11 Dec 2014 17:34:07 +0100},
+      biburl    = {https://dblp.org/rec/bib/conf/nips/McAuleyL12},
+      bibsource = {dblp computer science bibliography, https://dblp.org}
+    }
+
+    @proceedings{DBLP:conf/nips/2012,
+      editor    = {Peter L. Bartlett and
+                   Fernando C. N. Pereira and
+                   Christopher J. C. Burges and
+                   L{\'{e}}on Bottou and
+                   Kilian Q. Weinberger},
+      title     = {Advances in Neural Information Processing Systems 25: 26th Annual
+                   Conference on Neural Information Processing Systems 2012. Proceedings
+                   of a meeting held December 3-6, 2012, Lake Tahoe, Nevada, United States},
+      year      = {2012},
+      url       = {http://papers.nips.cc/book/advances-in-neural-information-processing-systems-25-2012},
+      timestamp = {Thu, 11 Dec 2014 17:34:07 +0100},
+      biburl    = {https://dblp.org/rec/bib/conf/nips/2012},
+      bibsource = {dblp computer science bibliography, https://dblp.org}
+    }
+
+    @online{WikipediaPOS,
+      author = {Matt Mahoney},
+      title = {Large text compression benchmark},
+      year = 2011,
+      url = {http://www.mattmahoney.net/dc/textdata},
+      urldate = {2011-01-01}
+    }
+    
+    @misc{snapnets,
+      author       = {Jure Leskovec and Andrej Krevl},
+      title        = {{SNAP Datasets}: {Stanford} Large Network Dataset Collection},
+      howpublished = {\url{http://snap.stanford.edu/data}},
+      month        = jun,
+      year         = 2014
+    }
+
+
 
 ## Sponsor
 
