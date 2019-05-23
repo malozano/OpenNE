@@ -33,13 +33,13 @@ class Node2vec(object):
         kwargs["sg"] = 1
 
         # Generate walk histogram
-        c = Counter()
-        for sentence in sentences:
-            c.update(sentence)
+        #c = Counter()
+        #for sentence in sentences:
+        #    c.update(sentence)
 
-        hist = sorted(c.values(), reverse=True)
-        with open('histnodes_{}.pkl'.format(len(graph.G.nodes)), 'wb') as fp:
-            dump(hist, fp)
+        #hist = sorted(c.values(), reverse=True)
+        #with open('histnodes_{}.pkl'.format(len(graph.G.nodes)), 'wb') as fp:
+        #    dump(hist, fp)
 
         self.size = kwargs["size"]
         print("Learning representation...")
